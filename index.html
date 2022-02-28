@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Netzdiagramm</title>
+        <style>
+            #erroricon {
+                fill: transparent;
+            }
+            #erroricon.active {
+                fill: red;
+            }
+        </style>
+        <!--<link rel="stylesheet" href="almond.css">-->
+    </head>
+    <body>
+        <header>
+            <h1>Netzdiagramm</h1>
+        </header>
+        <main>
+            <table id="input">
+                <thead>
+                    <tr>
+                        <th id="id">ID</th>
+                        <th id="name">Name</th>
+                        <th id="duration">Dauer</th>
+                        <th id="dependencies">Abhängigkeiten</th>
+                        <th id="error"></th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+            <template id="inputrow">
+                <tr>
+                    <td headers="id"><input type="text" size="5"></td>
+                    <td headers="name"><input type="text" size="20"></td>
+                    <td headers="duration"><input type="text" size="3"></td>
+                    <td headers="dependencies"><input type="text" size="10"></td>
+                    <td headers="error"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 1l-12 22h24l-12-22zm-1 8h2v7h-2v-7zm1 11.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z" id="erroricon"/></svg></td>
+                </tr>
+            </template>
+            <p id="error"></p>
+            <canvas id="output"></canvas>
+            <script src="index.js"></script>
+        </main>
+        <footer>
+            <p>Spiced up using <a href="https://github.com/alvaromontoro/almond.css">Almond.css</a></p>
+        </footer>
+    </body>
+</html>
