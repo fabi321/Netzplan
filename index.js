@@ -174,23 +174,25 @@ function index() {
                     let height = 0;
                     for (let dependantId of action.dependants) {
                         let dependant = dict[dependantId];
+                        let critical = dependant.gp == 0 && action.gp == 0 && dependant.faz == action.fez;
                         let sameTarget = interconnectedArrows[i].find(element => {
                             return element.to == dependant.verticalPos
                         });
                         if (sameTarget === undefined) {
                             interconnectedArrows[i].push({
                                 from: [{
-                                    verticalPos: verticalPos,
-                                    height: height,
+                                    verticalPos,
+                                    height,
+                                    critical,
                                 }],
                                 to: dependant.verticalPos,
                                 toRow: dependant.horizontalPos,
-                                height: height,
                             });
                         } else {
                             sameTarget.from.push({
-                                verticalPos: verticalPos,
-                                height: height,
+                                verticalPos,
+                                height,
+                                critical,
                             })
                         }
                         height += 1;
@@ -214,16 +216,25 @@ function index() {
             for (let j = 0; j < interconnectedArrows[i].length; j++) {
                 let current = interconnectedArrows[i][j];
                 let currentCalcIdx = interconnectedArrows[i].length - j - 1;
-                ctx.beginPath();
                 let targetY = current.to * boxHeight * 3 + current.to * spacingY + boxHeight * 1.5 + offsetY;
                 let intermediateX = baseX + lineSpacing + (lineSpacing + 1) * currentCalcIdx;
+                let isCritical = false;
                 for (let currentStart of current.from) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = currentStart.critical ? 'red' : 'black';
+                    isCritical |= currentStart.critical;
                     let startY = currentStart.verticalPos * boxHeight * 3 + currentStart.verticalPos * spacingY + lineSpacing + currentStart.height * (lineSpacing + 1) + offsetY;
                     ctx.moveTo(baseX, startY);
                     ctx.lineTo(intermediateX, startY);
                     ctx.lineTo(intermediateX, targetY);
-                    }
+                    ctx.stroke();
+                    ctx.stroke();
+                    ctx.stroke();
+                }
                 let targetX = current.toRow * boxWidth * 3 + spacing + getSpacing(interconnectedArrows, i, current.toRow) + offsetX;
+                ctx.beginPath();
+                ctx.strokeStyle = isCritical ? 'red' : 'black';
+                ctx.moveTo(intermediateX, targetY);
                 ctx.lineTo(targetX, targetY);
                 ctx.lineTo(targetX - arrowSize, targetY - arrowSize);
                 ctx.moveTo(targetX, targetY);
@@ -238,8 +249,8 @@ function index() {
     function drawTextBoxes(dict, maxWidth, maxDepth, interconnectedArrows) {
         canvas.width = boxWidth * 3 * (maxWidth + 1) + getSpacing(interconnectedArrows) + 2 * offsetX;
         canvas.height = boxHeight * 3 * (maxDepth + 1) + spacingY * maxDepth + 2 * offsetY;
-        ctx.strokeStyle = '#000';
-        ctx.fillStyle = '#000';
+        ctx.strokeStyle = 'black';
+        ctx.fillStyle = 'black';
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         for (let actionId of Object.keys(dict)) {
