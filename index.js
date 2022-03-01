@@ -174,12 +174,25 @@ function index() {
                     let height = 0;
                     for (let dependantId of action.dependants) {
                         let dependant = dict[dependantId];
-                        interconnectedArrows[i].push({
-                            from: verticalPos,
-                            to: dependant.verticalPos,
-                            toRow: dependant.horizontalPos,
-                            height: height,
+                        let sameTarget = interconnectedArrows[i].find(element => {
+                            return element.to == dependant.verticalPos
                         });
+                        if (sameTarget === undefined) {
+                            interconnectedArrows[i].push({
+                                from: [{
+                                    verticalPos: verticalPos,
+                                    height: height,
+                                }],
+                                to: dependant.verticalPos,
+                                toRow: dependant.horizontalPos,
+                                height: height,
+                            });
+                        } else {
+                            sameTarget.from.push({
+                                verticalPos: verticalPos,
+                                height: height,
+                            })
+                        }
                         height += 1;
                     }
                 }
@@ -194,10 +207,6 @@ function index() {
 
     const canvas = document.querySelector('canvas#output');
     const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = '#000';
-    ctx.fillStyle = '#000';
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
     function drawArrows(interconnectedArrows) {
         for (let i = 0; i < interconnectedArrows.length; i++) {
             let spacing = getSpacing(interconnectedArrows, 0, i);
@@ -206,12 +215,14 @@ function index() {
                 let current = interconnectedArrows[i][j];
                 let currentCalcIdx = interconnectedArrows[i].length - j - 1;
                 ctx.beginPath();
-                let startY = current.from * boxHeight * 3 + current.from * spacingY + lineSpacing + current.height * (lineSpacing + 1) + offsetY;
-                ctx.moveTo(baseX, startY);
-                let intermediateX = baseX + lineSpacing + (lineSpacing + 1) * currentCalcIdx;
-                ctx.lineTo(intermediateX, startY);
                 let targetY = current.to * boxHeight * 3 + current.to * spacingY + boxHeight * 1.5 + offsetY;
-                ctx.lineTo(intermediateX, targetY);
+                let intermediateX = baseX + lineSpacing + (lineSpacing + 1) * currentCalcIdx;
+                for (let currentStart of current.from) {
+                    let startY = currentStart.verticalPos * boxHeight * 3 + currentStart.verticalPos * spacingY + lineSpacing + currentStart.height * (lineSpacing + 1) + offsetY;
+                    ctx.moveTo(baseX, startY);
+                    ctx.lineTo(intermediateX, startY);
+                    ctx.lineTo(intermediateX, targetY);
+                    }
                 let targetX = current.toRow * boxWidth * 3 + spacing + getSpacing(interconnectedArrows, i, current.toRow) + offsetX;
                 ctx.lineTo(targetX, targetY);
                 ctx.lineTo(targetX - arrowSize, targetY - arrowSize);
@@ -227,6 +238,10 @@ function index() {
     function drawTextBoxes(dict, maxWidth, maxDepth, interconnectedArrows) {
         canvas.width = boxWidth * 3 * (maxWidth + 1) + getSpacing(interconnectedArrows) + 2 * offsetX;
         canvas.height = boxHeight * 3 * (maxDepth + 1) + spacingY * maxDepth + 2 * offsetY;
+        ctx.strokeStyle = '#000';
+        ctx.fillStyle = '#000';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
         for (let actionId of Object.keys(dict)) {
             let action = dict[actionId];
             let baseX = action.horizontalPos * boxWidth * 3 + getSpacing(interconnectedArrows, 0, action.horizontalPos) + offsetX;
