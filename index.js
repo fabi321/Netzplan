@@ -20,6 +20,7 @@ function index() {
             dict[entry.id] = {
                 duration: entry.duration,
                 dependencies: entry.dependencies,
+                name: entry.name,
                 dependants: [],
             }
             if (entry.dependencies.length == 0) {
@@ -208,7 +209,94 @@ function index() {
     }
 
     const canvas = document.querySelector('canvas#output');
+    const svg = document.querySelector('svg#vector');
     const ctx = canvas.getContext('2d');
+
+    function getSvgRect(x, y, w, h, content) {
+        let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        elem.setAttribute('x', x);
+        elem.setAttribute('y', y);
+        elem.setAttribute('width', w);
+        elem.setAttribute('height', h);
+        if (content !== undefined) {
+            elem.appendChild(content);
+        }
+        return elem;
+    }
+
+    function drawRect(x, y, w, h, svgContent) {
+        ctx.strokeRect(x, y, w, h);
+        ctx.strokeRect(x, y, w, h);
+        ctx.strokeRect(x, y, w, h);
+        svg.appendChild(getSvgRect(x, y, w, h, svgContent));
+    }
+
+    function getSvgLine(x1, y1, x2, y2, color) {
+        let elem = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        elem.setAttribute('x1', x1);
+        elem.setAttribute('y1', y1);
+        elem.setAttribute('x2', x2);
+        elem.setAttribute('y2', y2);
+        if (color !== undefined) {
+            elem.setAttribute('stroke', color);
+        }
+        return elem;
+    }
+
+    function drawLine(x1, y1, x2, y2, color) {
+        ctx.beginPath();
+        ctx.strokeStyle = color == undefined ? 'black' : color;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.stroke();
+        ctx.stroke();
+        svg.appendChild(getSvgLine(x1, y1, x2, y2, color));
+    }
+
+    function getSvgPolyLine(x1, y1, x2, y2, x3, y3, color) {
+        let elem = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        elem.setAttribute('points', `${x1},${y1} ${x2},${y2} ${x3},${y3}`);
+        if (color !== undefined) {
+            elem.setAttribute('stroke', color);
+        }
+        return elem;
+    }
+
+    function drawPolyLine(x1, y1, x2, y2, x3, y3, color) {
+        ctx.beginPath();
+        ctx.strokeStyle = color == undefined ? 'black' : color;
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineTo(x3, y3);
+        ctx.stroke();
+        ctx.stroke();
+        ctx.stroke();
+        svg.appendChild(getSvgPolyLine(x1, y1, x2, y2, x3, y3, color));
+    }
+
+    function getSvgText(text, x, y) {
+        let elem = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        elem.setAttribute('x', x);
+        elem.setAttribute('y', y);
+        elem.setAttribute('stroke-width', '1');
+        elem.textContent = text;
+        return elem;
+    }
+
+    function drawText(text, x, y) {
+        ctx.fillText(text, x, y);
+        ctx.fillText(text, x, y);
+        ctx.fillText(text, x, y);
+        svg.appendChild(getSvgText(text, x, y));
+    }
+
+    function getSvgTitle(content) {
+        let elem = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        elem.textContent = content;
+        return elem;
+    }
+
     function drawArrows(interconnectedArrows) {
         for (let i = 0; i < interconnectedArrows.length; i++) {
             let spacing = getSpacing(interconnectedArrows, 0, i);
@@ -220,28 +308,15 @@ function index() {
                 let intermediateX = baseX + lineSpacing + (lineSpacing + 1) * currentCalcIdx;
                 let isCritical = false;
                 for (let currentStart of current.from) {
-                    ctx.beginPath();
-                    ctx.strokeStyle = currentStart.critical ? 'red' : 'black';
+                    let strokeStyle = currentStart.critical ? 'red' : 'black';
                     isCritical |= currentStart.critical;
                     let startY = currentStart.verticalPos * boxHeight * 3 + currentStart.verticalPos * spacingY + lineSpacing + currentStart.height * (lineSpacing + 1) + offsetY;
-                    ctx.moveTo(baseX, startY);
-                    ctx.lineTo(intermediateX, startY);
-                    ctx.lineTo(intermediateX, targetY);
-                    ctx.stroke();
-                    ctx.stroke();
-                    ctx.stroke();
+                    drawPolyLine(baseX, startY, intermediateX, startY, intermediateX, targetY, strokeStyle);
                 }
                 let targetX = current.toRow * boxWidth * 3 + spacing + getSpacing(interconnectedArrows, i, current.toRow) + offsetX;
-                ctx.beginPath();
-                ctx.strokeStyle = isCritical ? 'red' : 'black';
-                ctx.moveTo(intermediateX, targetY);
-                ctx.lineTo(targetX, targetY);
-                ctx.lineTo(targetX - arrowSize, targetY - arrowSize);
-                ctx.moveTo(targetX, targetY);
-                ctx.lineTo(targetX - arrowSize, targetY + arrowSize)
-                ctx.stroke();
-                ctx.stroke();
-                ctx.stroke();
+                let strokeStyle = isCritical ? 'red' : 'black';
+                drawPolyLine(intermediateX, targetY, targetX, targetY, targetX - arrowSize, targetY - arrowSize, strokeStyle);
+                drawLine(targetX, targetY, targetX - arrowSize, targetY + arrowSize, strokeStyle);
             }
         }
     }
@@ -253,25 +328,27 @@ function index() {
         ctx.fillStyle = 'black';
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        svg.replaceChildren();
+        svg.setAttribute('viewBox', `0 0 ${canvas.width} ${canvas.height}`);
+        svg.setAttribute('width', canvas.width);
         for (let actionId of Object.keys(dict)) {
             let action = dict[actionId];
             let baseX = action.horizontalPos * boxWidth * 3 + getSpacing(interconnectedArrows, 0, action.horizontalPos) + offsetX;
             let baseY = action.verticalPos * boxHeight * 3 + spacingY * action.verticalPos + offsetY;
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    ctx.strokeRect(baseX + boxWidth * i, baseY + boxHeight * j, boxWidth, boxHeight);
-                    ctx.strokeRect(baseX + boxWidth * i, baseY + boxHeight * j, boxWidth, boxHeight);
-                    ctx.strokeRect(baseX + boxWidth * i, baseY + boxHeight * j, boxWidth, boxHeight);
-                }
-            }
-            ctx.fillText(actionId, baseX + boxWidth * 0.5, baseY + boxHeight * 0.5);
-            ctx.fillText(action.duration, baseX + boxWidth * 2.5, baseY + boxHeight * 0.5);
-            ctx.fillText(action.faz, baseX + boxWidth * 0.5, baseY + boxHeight * 1.5);
-            ctx.fillText(action.gp, baseX + boxWidth * 1.5, baseY + boxHeight * 1.5);
-            ctx.fillText(action.fez, baseX + boxWidth * 2.5, baseY + boxHeight * 1.5);
-            ctx.fillText(action.saz, baseX + boxWidth * 0.5, baseY + boxHeight * 2.5);
-            ctx.fillText(action.fp, baseX + boxWidth * 1.5, baseY + boxHeight * 2.5);
-            ctx.fillText(action.sez, baseX + boxWidth * 2.5, baseY + boxHeight * 2.5);
+            let tooltip = getSvgTitle(`Name: ${action.name}\nID: ${actionId}\nDuration: ${action.duration}\nFAZ: ${action.faz}\nFEZ: ${action.fez}\nSAZ: ${action.saz}\nSEZ: ${action.sez}\nGP: ${action.gp}\nFP: ${action.fp}`);
+            drawRect(baseX, baseY, boxWidth * 3, boxHeight * 3, tooltip);
+            drawLine(baseX + boxWidth, baseY, baseX + boxWidth, baseY + boxHeight * 3);
+            drawLine(baseX + boxWidth * 2, baseY, baseX + boxWidth * 2, baseY + boxHeight * 3);
+            drawLine(baseX, baseY + boxHeight, baseX + boxWidth * 3, baseY + boxHeight);
+            drawLine(baseX, baseY + boxHeight * 2, baseX + boxWidth * 3, baseY + boxHeight * 2);
+            drawText(actionId, baseX + boxWidth * 0.5, baseY + boxHeight * 0.5);
+            drawText(action.duration, baseX + boxWidth * 2.5, baseY + boxHeight * 0.5);
+            drawText(action.faz, baseX + boxWidth * 0.5, baseY + boxHeight * 1.5);
+            drawText(action.gp, baseX + boxWidth * 1.5, baseY + boxHeight * 1.5);
+            drawText(action.fez, baseX + boxWidth * 2.5, baseY + boxHeight * 1.5);
+            drawText(action.saz, baseX + boxWidth * 0.5, baseY + boxHeight * 2.5);
+            drawText(action.fp, baseX + boxWidth * 1.5, baseY + boxHeight * 2.5);
+            drawText(action.sez, baseX + boxWidth * 2.5, baseY + boxHeight * 2.5);
         }
     }
 
@@ -318,4 +395,4 @@ function index() {
     inputChanged();
 }
 
-index(); 
+index();
