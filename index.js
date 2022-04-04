@@ -208,30 +208,33 @@ function index() {
         return interconnectedArrows.slice(start, end).reduce((prev, current) => prev + current.length * (lineSpacing + 1) + lineSpacing + arrowSize, 0);
     }
 
-    const canvas = document.querySelector('canvas#output');
+    //const canvas = document.querySelector('canvas#output');
     const svg = document.querySelector('svg#vector');
-    const ctx = canvas.getContext('2d');
+    //const ctx = canvas.getContext('2d');
 
-    function getSvgRect(x, y, w, h, content) {
+    function drawRect(x, y, w, h, svgContent) {
+        //ctx.strokeRect(x, y, w, h);
+        //ctx.strokeRect(x, y, w, h);
+        //ctx.strokeRect(x, y, w, h);
         let elem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         elem.setAttribute('x', x);
         elem.setAttribute('y', y);
         elem.setAttribute('width', w);
         elem.setAttribute('height', h);
         if (content !== undefined) {
-            elem.appendChild(content);
+            elem.appendChild(svgContent);
         }
-        return elem;
+        svg.appendChild(elem);
     }
 
-    function drawRect(x, y, w, h, svgContent) {
-        ctx.strokeRect(x, y, w, h);
-        ctx.strokeRect(x, y, w, h);
-        ctx.strokeRect(x, y, w, h);
-        svg.appendChild(getSvgRect(x, y, w, h, svgContent));
-    }
-
-    function getSvgLine(x1, y1, x2, y2, color) {
+    function drawLine(x1, y1, x2, y2, color) {
+        //ctx.beginPath();
+        //ctx.strokeStyle = color == undefined ? 'black' : color;
+        //ctx.moveTo(x1, y1);
+        //ctx.lineTo(x2, y2);
+        //ctx.stroke();
+        //ctx.stroke();
+        //ctx.stroke();
         let elem = document.createElementNS("http://www.w3.org/2000/svg", "line");
         elem.setAttribute('x1', x1);
         elem.setAttribute('y1', y1);
@@ -240,55 +243,36 @@ function index() {
         if (color !== undefined) {
             elem.setAttribute('stroke', color);
         }
-        return elem;
+        svg.appendChild(elem);
     }
 
-    function drawLine(x1, y1, x2, y2, color) {
-        ctx.beginPath();
-        ctx.strokeStyle = color == undefined ? 'black' : color;
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        ctx.stroke();
-        ctx.stroke();
-        svg.appendChild(getSvgLine(x1, y1, x2, y2, color));
-    }
-
-    function getSvgPolyLine(x1, y1, x2, y2, x3, y3, color) {
+    function drawPolyLine(x1, y1, x2, y2, x3, y3, color) {
+        //ctx.beginPath();
+        //ctx.strokeStyle = color == undefined ? 'black' : color;
+        //ctx.moveTo(x1, y1);
+        //ctx.lineTo(x2, y2);
+        //ctx.lineTo(x3, y3);
+        //ctx.stroke();
+        //ctx.stroke();
+        //ctx.stroke();
         let elem = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
         elem.setAttribute('points', `${x1},${y1} ${x2},${y2} ${x3},${y3}`);
         if (color !== undefined) {
             elem.setAttribute('stroke', color);
         }
-        return elem;
+        svg.appendChild(elem);
     }
 
-    function drawPolyLine(x1, y1, x2, y2, x3, y3, color) {
-        ctx.beginPath();
-        ctx.strokeStyle = color == undefined ? 'black' : color;
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.lineTo(x3, y3);
-        ctx.stroke();
-        ctx.stroke();
-        ctx.stroke();
-        svg.appendChild(getSvgPolyLine(x1, y1, x2, y2, x3, y3, color));
-    }
-
-    function getSvgText(text, x, y) {
+    function drawText(text, x, y) {
+        //ctx.fillText(text, x, y);
+        //ctx.fillText(text, x, y);
+        //ctx.fillText(text, x, y);
         let elem = document.createElementNS("http://www.w3.org/2000/svg", "text");
         elem.setAttribute('x', x);
         elem.setAttribute('y', y);
         elem.setAttribute('stroke-width', '1');
         elem.textContent = text;
-        return elem;
-    }
-
-    function drawText(text, x, y) {
-        ctx.fillText(text, x, y);
-        ctx.fillText(text, x, y);
-        ctx.fillText(text, x, y);
-        svg.appendChild(getSvgText(text, x, y));
+        svg.appendChild(elem);
     }
 
     function getSvgTitle(content) {
@@ -322,15 +306,17 @@ function index() {
     }
 
     function drawTextBoxes(dict, maxWidth, maxDepth, interconnectedArrows) {
-        canvas.width = boxWidth * 3 * (maxWidth + 1) + getSpacing(interconnectedArrows) + 2 * offsetX;
-        canvas.height = boxHeight * 3 * (maxDepth + 1) + spacingY * maxDepth + 2 * offsetY;
-        ctx.strokeStyle = 'black';
-        ctx.fillStyle = 'black';
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        let width = boxWidth * 3 * (maxWidth + 1) + getSpacing(interconnectedArrows) + 2 * offsetX;
+        let height = boxHeight * 3 * (maxDepth + 1) + spacingY * maxDepth + 2 * offsetY;
+        //canvas.width = width;
+        //canvas.height = height;
+        //ctx.strokeStyle = 'black';
+        //ctx.fillStyle = 'black';
+        //ctx.textAlign = "center";
+        //ctx.textBaseline = "middle";
         svg.replaceChildren();
-        svg.setAttribute('viewBox', `0 0 ${canvas.width} ${canvas.height}`);
-        svg.setAttribute('width', canvas.width);
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.setAttribute('width', width);
         for (let actionId of Object.keys(dict)) {
             let action = dict[actionId];
             let baseX = action.horizontalPos * boxWidth * 3 + getSpacing(interconnectedArrows, 0, action.horizontalPos) + offsetX;
