@@ -380,6 +380,7 @@ function index() {
             }
         }
         download();
+        upload();
         let clone = template.content.cloneNode(true);
         clone.querySelectorAll('input').forEach((element) => {element.addEventListener('change', inputChanged)});
         document.querySelector('#input>tbody').appendChild(clone);
@@ -409,6 +410,34 @@ function index() {
         element.setAttribute('id', 'download')
         element.textContent = 'Download diagram';
         originSvg.insertAdjacentElement('afterend', element);
+    }
+
+    const parser = new DOMParser();
+    function upload() {
+        function handleFileSelect(e) {
+            let file = e.target.files[0];
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                let svg = parser.parseFromString(e.target.result, 'image/svg+xml');
+                let json = decodeURIComponent(svg.querySelector('desc#netzplan-content').textContent);
+                let conf = JSON.parse(json);
+                let inputs = document.querySelector('#input>tbody');
+                inputs.replaceChildren();
+                console.log(conf);
+                for (let entry of conf) {
+                    let clone = template.content.cloneNode(true);
+                    clone.querySelectorAll('input').forEach((element) => {element.addEventListener('change', inputChanged)});
+                    clone.querySelector('[headers=id]>input').value = entry.id;
+                    clone.querySelector('[headers=name]>input').value = entry.name || '';
+                    clone.querySelector('[headers=duration]>input').value = entry.duration;
+                    clone.querySelector('[headers=dependencies]>input').value = entry.dependencies;
+                    inputs.appendChild(clone);
+                    inputChanged();
+                }
+            };
+            reader.readAsText(file);
+        }
+        document.getElementById('upload').addEventListener('change', handleFileSelect, false);
     }
 
     inputChanged();
