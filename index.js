@@ -387,12 +387,7 @@ function index() {
     }
 
     function download() {
-        let previousLinks = document.querySelectorAll('a#download')
-        if (previousLinks.length) {
-            for (let entry in previousLinks) {
-                entry.remove()
-            }
-        }
+        let link = document.querySelector('a#download');
         let content = getContent();
         for (let entry of content) {
             entry.dependencies = entry.dependencies.join();
@@ -404,12 +399,7 @@ function index() {
         desc.textContent = encodeURIComponent(json);
         desc.setAttribute('id', 'netzplan-content');
         svg.appendChild(desc);
-        let element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(svg.outerHTML));
-        element.setAttribute('download', 'diagram.svg');
-        element.setAttribute('id', 'download')
-        element.textContent = 'Download diagram';
-        originSvg.insertAdjacentElement('afterend', element);
+        link.setAttribute('href', 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.outerHTML));
     }
 
     const parser = new DOMParser();
