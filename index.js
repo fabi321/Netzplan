@@ -338,8 +338,7 @@ function index() {
         }
     }
 
-    const template = document.querySelector('#inputrow');
-    function inputChanged() {
+    function getContent() {
         let rows = document.querySelectorAll('#input>tbody>tr');
         let entries = [];
         for (let row of rows) {
@@ -361,6 +360,12 @@ function index() {
                 });
             }
         }
+        return entries;
+    }
+
+    const template = document.querySelector('#inputrow');
+    function inputChanged() {
+        let entries = getContent();
         if (entries.length != 0) {
             let res = buildDependencyTree(entries);
             if ('string' == typeof res) {
@@ -374,10 +379,38 @@ function index() {
                 document.querySelector('#error').textContent = '';
             }
         }
+        download();
         let clone = template.content.cloneNode(true);
         clone.querySelectorAll('input').forEach((element) => {element.addEventListener('change', inputChanged)});
         document.querySelector('#input>tbody').appendChild(clone);
     }
+
+    function download() {
+        let previousLinks = document.querySelectorAll('a#download')
+        if (previousLinks.length) {
+            for (let entry in previousLinks) {
+                entry.remove()
+            }
+        }
+        let content = getContent();
+        for (let entry of content) {
+            entry.dependencies = entry.dependencies.join();
+        }
+        let json = JSON.stringify(content);
+        let originSvg = document.querySelector('svg#vector');
+        let svg = originSvg.cloneNode(true);
+        let desc = document.createElementNS('http://www.w3.org/2000/svg', 'desc');
+        desc.textContent = encodeURIComponent(json);
+        desc.setAttribute('id', 'netzplan-content');
+        svg.appendChild(desc);
+        let element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(svg.outerHTML));
+        element.setAttribute('download', 'diagram.svg');
+        element.setAttribute('id', 'download')
+        element.textContent = 'Download diagram';
+        originSvg.insertAdjacentElement('afterend', element);
+    }
+
     inputChanged();
 }
 
