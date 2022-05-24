@@ -221,7 +221,7 @@ function index() {
         elem.setAttribute('y', y);
         elem.setAttribute('width', w);
         elem.setAttribute('height', h);
-        if (content !== undefined) {
+        if (svgContent !== undefined) {
             elem.appendChild(svgContent);
         }
         svg.appendChild(elem);
