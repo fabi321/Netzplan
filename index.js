@@ -386,8 +386,8 @@ function index() {
         document.querySelector('#input>tbody').appendChild(clone);
     }
 
+    let link = document.querySelector('a#download');
     function download() {
-        let link = document.querySelector('a#download');
         let content = getContent();
         for (let entry of content) {
             entry.dependencies = entry.dependencies.join();
@@ -406,6 +406,7 @@ function index() {
     function upload() {
         function handleFileSelect(e) {
             let file = e.target.files[0];
+            link.setAttribute('download', file.name);
             let reader = new FileReader();
             reader.onload = function (e) {
                 let svg = parser.parseFromString(e.target.result, 'image/svg+xml');
@@ -413,7 +414,6 @@ function index() {
                 let conf = JSON.parse(json);
                 let inputs = document.querySelector('#input>tbody');
                 inputs.replaceChildren();
-                console.log(conf);
                 for (let entry of conf) {
                     let clone = template.content.cloneNode(true);
                     clone.querySelectorAll('input').forEach((element) => {element.addEventListener('change', inputChanged)});
