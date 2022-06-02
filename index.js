@@ -381,6 +381,7 @@ function index() {
         }
         download();
         upload();
+        uploadLibre();
         let clone = template.content.cloneNode(true);
         clone.querySelectorAll('input').forEach((element) => {element.addEventListener('change', inputChanged)});
         document.querySelector('#input>tbody').appendChild(clone);
@@ -428,6 +429,41 @@ function index() {
             reader.readAsText(file);
         }
         document.getElementById('upload').addEventListener('change', handleFileSelect, false);
+    }
+
+    const getTask = /<Task>.*?<\/Task>/gs;
+    const getName = /<Name>([^<]*)<\/Name>/g;
+    const getUid = /<UID>(\d*)<\/UID>/g;
+    const getDuration = /<Duration>PT(\d*)H0M0S<\/Duration>/g;
+    const getPredecessor = /<PredecessorUID>(\d*)<\/PredecessorUID>/g;
+    function uploadLibre() {
+        function handleFileSelect(e) {
+            let file = e.target.files[0];
+            link.setAttribute('download', file.name.replace('pod', 'svg'));
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                let content = e.target.result;
+                let inputs = document.querySelector('#input>tbody');
+                inputs.replaceChildren();
+                for (let taskMatch of content.matchAll(getTask)) {
+                    let task = taskMatch[0];
+                    let dependencies = [];
+                    for (let dependency of task.matchAll(getPredecessor)) {
+                        dependencies.push(parseInt(dependency[1]))
+                    }
+                    let clone = template.content.cloneNode(true);
+                    clone.querySelectorAll('input').forEach((element) => {element.addEventListener('change', inputChanged)});
+                    clone.querySelector('[headers=id]>input').value = parseInt([...task.matchAll(getUid)][0][1]);
+                    clone.querySelector('[headers=name]>input').value = [...task.matchAll(getName)][0][1] || '';
+                    clone.querySelector('[headers=duration]>input').value = parseInt([...task.matchAll(getDuration)][0][1]) / 8;
+                    clone.querySelector('[headers=dependencies]>input').value = dependencies;
+                    inputs.appendChild(clone);
+                    inputChanged();
+                }
+            };
+            reader.readAsText(file);
+        }
+        document.getElementById('projects_file').addEventListener('change', handleFileSelect, false);
     }
 
     inputChanged();
