@@ -355,7 +355,7 @@ function index() {
                 entries.push({
                     id: id,
                     name: name,
-                    duration: parseInt(duration),
+                    duration: parseFloat(duration),
                     dependencies: dependencies.split(',').map((element) => element.trim()).filter((element) => element != ''),
                 });
             }
@@ -434,7 +434,7 @@ function index() {
     const getTask = /<Task>.*?<\/Task>/gs;
     const getName = /<Name>([^<]*)<\/Name>/g;
     const getUid = /<UID>(\d*)<\/UID>/g;
-    const getDuration = /<Duration>PT(\d*)H0M0S<\/Duration>/g;
+    const getDuration = /<Duration>PT(\d*)H(\d*)M0S<\/Duration>/g;
     const getPredecessor = /<PredecessorUID>(\d*)<\/PredecessorUID>/g;
     function uploadLibre() {
         function handleFileSelect(e) {
@@ -452,10 +452,11 @@ function index() {
                         dependencies.push(parseInt(dependency[1]))
                     }
                     let clone = template.content.cloneNode(true);
+                    let duration = [...task.matchAll(getDuration)][0];
                     clone.querySelectorAll('input').forEach((element) => {element.addEventListener('change', inputChanged)});
                     clone.querySelector('[headers=id]>input').value = parseInt([...task.matchAll(getUid)][0][1]);
                     clone.querySelector('[headers=name]>input').value = [...task.matchAll(getName)][0][1] || '';
-                    clone.querySelector('[headers=duration]>input').value = parseInt([...task.matchAll(getDuration)][0][1]) / 8;
+                    clone.querySelector('[headers=duration]>input').value = parseInt(duration[1]) / 8 + parseInt(duration[2]) / 480;
                     clone.querySelector('[headers=dependencies]>input').value = dependencies;
                     inputs.appendChild(clone);
                     inputChanged();
